@@ -28,4 +28,21 @@ CREATE TABLE IF NOT EXISTS rooms (
 
 print("Databas och tabeller skapade!")
 
+
+
+# Skapa tabell: bookings (bokningar)
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS bookings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    rum_id INTEGER NOT NULL,
+    anvandare_id INTEGER NOT NULL,
+    incheckning DATE NOT NULL,
+    utcheckning DATE NOT NULL,
+    status TEXT DEFAULT 'bokad',
+    FOREIGN KEY (rum_id) REFERENCES rooms (id),
+    FOREIGN KEY (anvandare_id) REFERENCES users (id)
+)
+''')
+print(" Tabell 'bookings' skapade")
+
 conn.close()

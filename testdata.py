@@ -48,6 +48,27 @@ if antal_users == 0:
 else:
     print("Användare finns redan, hoppar över")
 
+# Kollar om det redan finns bokningar i databasen
+# Så att vi inte lägger in dubletter varje gång vi kör filen
+cursor.execute("SELECT COUNT(*) FROM bookings")
+antal_bokningar = cursor.fetchone()[0]
+
+if antal_bokningar == 0:
+    testdata_bokningar = [
+        (1, 1, "2026-04-01", "2026-04-03"),
+        (2, 2, "2026-04-05", "2026-04-07"),
+        (3, 3, "2026-04-10", "2026-04-12"),
+        (4, 4, "2026-04-15", "2026-04-17"),
+        (5, 5, "2026-04-20", "2026-04-22")
+    ]
+    cursor.executemany('''
+    INSERT INTO bookings (rum_id, anvandare_id, incheckning, utcheckning)
+    VALUES (?, ?, ?, ?)
+    ''', testdata_bokningar)
+    print("5 testbokningar inlagda")
+else:
+    print("Bokningar finns redan, hoppar över")
+
 conn.commit()
 conn.close()
 print("Testdata klar")
