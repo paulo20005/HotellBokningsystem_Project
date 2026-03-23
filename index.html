@@ -4,17 +4,64 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hotell Rum</title>
-    <!-- Länkar till CSS-filen för styling -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <header>
         <h1> Våra Rum</h1>
         <p>Välj ett rum som passar dig!</p>
-    </header>
 
-    <main>
-        <!-- Här kommer JavaScript att fylla i rummen -->
+        <!-- Mitt konto-knapp längst upp till höger -->
+        <div id="mitt-konto-knapp">
+            <button id="konto-btn" onclick="visaMinaBokningar()">👤 Mitt konto</button>
+        </div>
+    </header>
+<!-- Mina bokningar-sektion (gömd från början) -->
+<div id="bokningar-container" style="display:none;">
+    <h2>📅 Mina bokningar</h2>
+    <div id="bokningar-lista">
+        <p class="loading">Laddar bokningar...</p>
+    </div>
+    <div style="margin-top: 20px;">
+        <button onclick="stangBokningar()">← Tillbaka till rum</button>
+        <button onclick="logout()" style="margin-left: 10px; background-color: #dc3545;">🚪 Logga ut</button>
+    </div>
+</div>
+
+    <!-- Inloggningssektion -->
+    <div id="auth-container">
+        <div id="login-form">
+            <h3>Logga in</h3>
+            <input type="email" id="login-email" placeholder="Email" required>
+            <input type="password" id="login-password" placeholder="Lösenord" required>
+            <button onclick="login()">Logga in</button>
+            <p>Inget konto? <a href="#" onclick="visaRegister()">Registrera dig</a></p>
+        </div>
+<div id="register-form" style="display:none;">
+            <h3>Registrera ny användare</h3>
+            <input type="text" id="register-name" placeholder="Namn" required>
+            <input type="email" id="register-email" placeholder="Email" required>
+            <input type="password" id="register-password" placeholder="Lösenord" required>
+            <button onclick="register()">Registrera</button>
+            <p>Har du redan konto? <a href="#" onclick="visaLogin()">Logga in</a></p>
+        </div>
+
+        <div id="user-info" style="display:none;">
+            <p>Inloggad som: <span id="user-name"></span></p>
+            <button onclick="visaMinaBokningar()">📋 Mina bokningar</button>
+            <button onclick="logout()">Logga ut</button>
+        </div>
+    </div>
+<!-- Mina bokningar-sektion (gömd från början) -->
+    <div id="bokningar-container" style="display:none;">
+        <h2>📅 Mina bokningar</h2>
+        <div id="bokningar-lista">
+            <p class="loading">Laddar bokningar...</p>
+        </div>
+        <button onclick="stangBokningar()">← Tillbaka till rum</button>
+    </div>
+
+    <main id="rum-main">
         <div id="rum-container">
             <p class="loading">Laddar rum...</p>
         </div>
@@ -24,7 +71,6 @@
         <p>© 2026 Hotellbokningen</p>
     </footer>
 
-    <!-- Länkar till JavaScript filen som hämtar och visar rum -->
     <script src="script.js"></script>
 </body>
 </html>

@@ -1,4 +1,3 @@
-// Vänta inte på något – kör direkt när sidan laddas
 
 // Hämta data från vårt API
 fetch('http://localhost:8000/api/rooms')
