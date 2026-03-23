@@ -45,4 +45,22 @@ CREATE TABLE IF NOT EXISTS bookings (
 ''')
 print(" Tabell 'bookings' skapade")
 
+
+# Skapa tabell reviews 
+# det kommer att finnas en relation mellan reviews och både rooms, users och bookings.
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS reviews (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    rum_id INTEGER NOT NULL,
+    anvandare_id INTEGER NOT NULL,
+    bokning_id INTEGER NOT NULL,
+    betyg INTEGER NOT NULL CHECK (betyg >= 1 AND betyg <= 5), 
+    kommentar TEXT,
+    skapad TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (rum_id) REFERENCES rooms (id),
+    FOREIGN KEY (anvandare_id) REFERENCES users (id),
+    FOREIGN KEY (bokning_id) REFERENCES bookings (id)
+)
+''')
+print(" Tabell 'reviews' skapad!")
 conn.close()

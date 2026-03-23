@@ -69,6 +69,29 @@ if antal_bokningar == 0:
 else:
     print("Bokningar finns redan, hoppar över")
 
+# Kolla om det redan finns recensioner
+cursor.execute("SELECT COUNT(*) FROM reviews")
+antal_recensioner = cursor.fetchone()[0]
+
+if antal_recensioner == 0:
+    # Testdata för recensioner
+    # (rum_id, anvandare_id, bokning_id, betyg, kommentar)
+    recensioner = [
+        (1, 1, 1, 5, "Fantastiskt rum med havsutsikt! Rekommenderas varmt."),
+        (2, 2, 2, 4, "Bra rum, lite litet men mysigt."),
+        (3, 3, 3, 5, "Perfekt för par, bra läge."),
+        (4, 4, 4, 3, "Bra för familjer, men lite lyhört."),
+        (5, 5, 5, 4, "Lyxigt, men priset är högt.")
+    ]
+    # 
+    cursor.executemany('''
+    INSERT INTO reviews (rum_id, anvandare_id, bokning_id, betyg, kommentar)
+    VALUES (?, ?, ?, ?, ?)
+    ''', recensioner)
+    print(" 5 testrecensioner inlagda!")
+else:
+    print(" Recensioner finns redan, hoppar över")
+
 conn.commit()
 conn.close()
 print("Testdata klar")
