@@ -256,3 +256,86 @@ def avboka_bokning(boknings_id: int):
     conn.close()
 
     return {"message": "Bokningen har avbokats"}
+
+# Skapa en recension
+@app.post("/api/reviews")
+def create_review(data: dict = Body(...)):
+    rum_id = data.get("rum_id")
+    anvandare_id = data.get("anvandare_id")
+    bokning_id = data.get("bokning_id")
+    betyg = data.get("betyg")
+    kommentar = data.get("kommentar")
+
+    if betyg < 1 or betyg > 5:
+        return {"error": "Betyg måste vara 1-5"}
+
+    conn = sqlite3.connect('hotell.db')
+    cursor = conn.cursor()
+
+    # Kolla att användaren faktiskt har gjort denna bokning
+    cursor.execute("""
+        SELECT * FROM bookings 
+        WHERE id = ? AND anvandare_id = ? AND utcheckning < date('now')
+    """, (bokning_id, anvandare_id))
+
+    bokning = cursor.fetchone()
+    if not bokning:
+        conn.close()
+        return {"error": "Du kan bara recensera rum du har bott i"}
+
+    # Kolla om recension redan finns för denna bokning
+    cursor.execute("SELECT * FROM reviews WHERE bokning_id = ?", (bokning_id,))
+    if cursor.fetchone():
+        conn.close()
+        return {"error": "Du har redan recenserat detta rum"}
+
+    # Spara recension
+    cursor.execute("""
+        INSERT INTO reviews (rum_id, anvandare_id, bokning_id, betyg, kommentar)
+        VALUES (?, ?, ?, ?, ?)
+    """, (rum_id, anvandare_id, bokning_id, betyg, kommentar))
+
+    conn.commit()
+    conn.close()
+
+    return {"message": "Tack för din recension!"}
+
+    # Hämta recensioner för ett rum
+@app.get("/api/rooms/{rum_id}/reviews")
+def get_reviews(rum_id: int):
+    try:
+        conn = sqlite3.connect('hotell.db')
+        cursor = conn.cursor()
+
+        # Först kolla om rummet finns
+        cursor.execute("SELECT * FROM rooms WHERE id = ?", (rum_id,))
+        rum = cursor.fetchone()
+        if not rum:
+            conn.close()
+            return {"error": "Rummet finns inte"}
+
+        # Hämta recensioner för rummet
+        cursor.execute("""
+            SELECT reviews.id, users.namn, reviews.betyg, reviews.kommentar, reviews.skapad
+            FROM reviews 
+            JOIN users ON reviews.anvandare_id = users.id
+            WHERE reviews.rum_id = ?
+            ORDER BY reviews.skapad DESC
+        """, (rum_id,))
+
+        recensioner = cursor.fetchall()
+        conn.close()
+        resultat = []
+        for r in recensioner:
+            resultat.append({
+                "id": r[0],
+                "anvandare": r[1],
+                "betyg": r[2],
+                "kommentar": r[3],
+                "datum": r[4]
+            })
+
+        return {"rum_id": rum_id, "recensioner": resultat}
+
+    except Exception as e:
+        return {"error": str(e)}
