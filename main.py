@@ -339,3 +339,100 @@ def get_reviews(rum_id: int):
 
     except Exception as e:
         return {"error": str(e)}
+# ========== ADMIN - CRUD FÖR RUM ==========
+
+# Lägg till nytt rum
+@app.post("/api/admin/rooms")
+def create_room(data: dict = Body(...)):
+    nummer = data.get("nummer")
+    pris = data.get("pris")
+    beskrivning = data.get("beskrivning")
+    max_gaster = data.get("max_gaster", 2)
+    
+    conn = sqlite3.connect('hotell.db')
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute("""
+            INSERT INTO rooms (nummer, pris, beskrivning, max_gaster)
+            VALUES (?, ?, ?, ?)
+        """, (nummer, pris, beskrivning, max_gaster))
+        conn.commit()
+        return {"message": f"Rum {nummer} har lagts till"}
+    except sqlite3.IntegrityError:
+        return {"error": "Rumsnumret finns redan"}
+    finally:
+        conn.close()
+
+# Uppdatera rum
+@app.put("/api/admin/rooms/{rum_id}")
+def update_room(rum_id: int, data: dict = Body(...)):
+    pris = data.get("pris")
+    beskrivning = data.get("beskrivning")
+    max_gaster = data.get("max_gaster")
+    
+    conn = sqlite3.connect('hotell.db')
+    cursor = conn.cursor()
+    
+    cursor.execute("SELECT * FROM rooms WHERE id = ?", (rum_id,))
+    if not cursor.fetchone():
+        conn.close()
+        return {"error": "Rummet finns inte"}
+    
+    cursor.execute("""
+        UPDATE rooms 
+        SET pris = COALESCE(?, pris),
+            beskrivning = COALESCE(?, beskrivning),
+            max_gaster = COALESCE(?, max_gaster)
+        WHERE id = ?
+    """, (pris, beskrivning, max_gaster, rum_id))
+    
+    conn.commit()
+    conn.close()
+    return {"message": f"Rum {rum_id} har uppdaterats"}
+
+# Ta bort rum 
+@app.delete("/api/admin/rooms/{rum_id}")
+def delete_room(rum_id: int):
+    conn = sqlite3.connect('hotell.db')
+    cursor = conn.cursor()
+    
+    cursor.execute("SELECT * FROM rooms WHERE id = ?", (rum_id,))
+    if not cursor.fetchone():
+        conn.close()
+        return {"error": "Rummet finns inte"}
+    
+    cursor.execute("DELETE FROM rooms WHERE id = ?", (rum_id,))
+    conn.commit()
+    conn.close()
+    return {"message": f"Rum {rum_id} har tagits bort"}
+
+# Admin - se alla bokningar
+@app.get("/api/admin/bookings")
+def get_all_bookings():
+    conn = sqlite3.connect('hotell.db')
+    cursor = conn.cursor()
+    #
+    cursor.execute("""
+        SELECT bookings.id, users.namn, rooms.nummer, rooms.pris,
+               bookings.incheckning, bookings.utcheckning
+        FROM bookings 
+        JOIN users ON bookings.anvandare_id = users.id
+        JOIN rooms ON bookings.rum_id = rooms.id
+        ORDER BY bookings.incheckning DESC
+    """)
+    bokningar = cursor.fetchall()
+    conn.close()
+    # Skapa en lista med bokningar för att returnera som JSON
+    resultat = []
+    for b in bokningar:
+        resultat.append({
+            "boknings_id": b[0],
+            "gast": b[1],
+            "rum_nr": b[2],
+            "pris": b[3],
+            "incheckning": b[4],
+            "utcheckning": b[5]
+        })
+    
+    return resultat
