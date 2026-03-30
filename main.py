@@ -1,6 +1,10 @@
 from fastapi import FastAPI, Body
 from fastapi.middleware.cors import CORSMiddleware
 import sqlite3
+import json
+import time
+import pandas as pd
+from kafka import KafkaProducer
 
 # Skapa FastAPI-appen
 app = FastAPI()
@@ -436,3 +440,38 @@ def get_all_bookings():
         })
     
     return resultat
+@app.post("/api/etl/send-to-kafka")
+def send_bookings_to_kafka():
+    conn = sqlite3.connect('hotell.db')
+    df = pd.read_sql_query("""
+        SELECT bookings.id, bookings.rum_id, bookings.anvandare_id, 
+               bookings.incheckning, bookings.utcheckning, users.namn
+        FROM bookings
+        JOIN users ON bookings.anvandare_id = users.id
+    """, conn)
+    conn.close()
+    
+    if len(df) == 0:
+        return {"error": "Inga bokningar att skicka"}
+    
+    producer = KafkaProducer(
+        bootstrap_servers='127.0.0.1:9092',
+        value_serializer=lambda v: json.dumps(v).encode('utf-8')
+    )
+    
+    count = 0
+    for _, row in df.iterrows():
+        message = {
+            "boknings_id": row['id'],
+            "rum_id": row['rum_id'],
+            "anvandare_id": row['anvandare_id'],
+            "gast": row['namn'],
+            "incheckning": row['incheckning'],
+            "utcheckning": row['utcheckning']
+        }
+        producer.send('bokningar', value=message)
+        count += 1
+        time.sleep(0.5)
+    
+    producer.flush()
+    return {"message": f"{count} bokningar skickade till Kafka"}

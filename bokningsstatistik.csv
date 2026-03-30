@@ -1,0 +1,7 @@
+boknings_id,rum_id,anvandare_id,gast,incheckning,utcheckning
+1,1,1,Paulo,2026-04-01,2026-04-03
+2,2,2,Kristian,2026-04-05,2026-04-07
+3,3,3,Patrick,2026-04-10,2026-04-12
+4,4,4,Yousef,2026-04-15,2026-04-17
+5,5,5,Kalle Anka,2026-04-20,2026-04-22
+6,5,7,paulo,2029-02-03,2029-02-10
